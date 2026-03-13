@@ -9,7 +9,9 @@ const {
   getProductById,
   updateProduct,
   deleteProduct,
-  searchProducts
+  searchProducts,
+  getProductByBarcode,
+  getLowStockProducts
 } = require("../controllers/productController");
 
 /*
@@ -24,7 +26,8 @@ Example:
 GET /api/products/search?keyword=nike
 */
 router.get("/search", searchProducts);
-
+router.get("/barcode/:barcode", getProductByBarcode);
+router.get("/low-stock", getLowStockProducts);
 /*
 GET ALL PRODUCTS
 */
@@ -46,5 +49,7 @@ DELETE PRODUCT
 Only admin allowed
 */
 router.delete("/:id", protect, authorizeRoles("admin"), deleteProduct);
+
+
 
 module.exports = router;

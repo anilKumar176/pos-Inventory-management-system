@@ -6,8 +6,9 @@ const connectDB = require("./config/db");
 const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const authRoutes = require("./routes/authRoutes");
-
+const reportRoutes = require("./routes/reportRoutes");
 const app = express();
+
 
 connectDB();
 
@@ -17,6 +18,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 
+app.use("/api/reports", reportRoutes);
 
 app.get("/", (req, res) => {
   res.send("POS API Running");
