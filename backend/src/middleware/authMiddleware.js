@@ -19,7 +19,7 @@ const protect = (req, res, next) => {
     res.status(401).json({ message: "Invalid token" });
   }
 };
-
+//manage user access based on role
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
 
