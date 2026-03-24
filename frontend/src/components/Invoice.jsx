@@ -34,3 +34,4 @@ const Invoice = ({ cart, total }) => {
 };
 
 export default Invoice;
+//manage products, add, edit, delete
