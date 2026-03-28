@@ -36,7 +36,7 @@ const Dashboard = () => {
     }
   };
 
-  // 📊 TOTALS
+  //  TOTALS
   const totalRevenue = orders.reduce(
     (sum, o) => sum + o.totalAmount,
     0
@@ -44,7 +44,7 @@ const Dashboard = () => {
 
   const totalOrders = orders.length;
 
-  // 📊 PAYMENT DATA
+  //  PAYMENT DATA
   const paymentData = [
     {
       name: "Cash",
@@ -66,7 +66,7 @@ const Dashboard = () => {
     },
   ];
 
-  // 📊 DAILY SALES
+  //  DAILY SALES
   const salesMap = {};
 
   orders.forEach((o) => {
@@ -91,7 +91,7 @@ const Dashboard = () => {
       <div className="p-6 bg-gray-100 min-h-screen">
 
         <h1 className="text-2xl font-bold mb-6">
-          📊 Dashboard
+           Dashboard
         </h1>
 
         {/* CARDS */}

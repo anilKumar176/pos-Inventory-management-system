@@ -56,7 +56,7 @@ const CashierReport = () => {
   return (
     <Layout>
       <h1 className="text-2xl font-bold mb-6">
-        📊 Cashier Daily Report
+         Cashier Daily Report
       </h1>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6">

@@ -19,34 +19,39 @@ const Products = () => {
     image: "",
   });
 
+  //  FIXED 20 CATEGORIES
+  const categories = [
+    "Footwear","Clothing","Electronics","Groceries","Accessories",
+    "Bags","Watches","Mobile","Laptop","Furniture",
+    "Beauty","Toys","Stationery","Sports","Books",
+    "Kitchen","Home Decor","Fitness","Automobile","Health"
+  ];
+
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // 🔄 FETCH PRODUCTS
   const fetchProducts = async () => {
     try {
       const res = await API.get("/products");
       setProducts(res.data.products || res.data);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load products ❌");
     }
   };
 
-  // 📝 HANDLE CHANGE
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ➕ ADD PRODUCT
   const addProduct = async (e) => {
     e.preventDefault();
 
     try {
       const token = localStorage.getItem("token");
 
-      if (!form.name || !form.price || !form.stock) {
-        toast.error("Fill required fields ❌");
+      if (!form.name || !form.price || !form.stock || !form.category) {
+        toast.error("Fill all required fields ❌");
         return;
       }
 
@@ -64,16 +69,14 @@ const Products = () => {
         }
       );
 
-      toast.success("Product Added ✅");
+      toast.success("Product Added ");
       resetForm();
       fetchProducts();
-    } catch (err) {
-      console.log(err.response?.data || err.message);
+    } catch {
       toast.error("Error adding product ❌");
     }
   };
 
-  // ✏️ UPDATE PRODUCT
   const updateProduct = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -92,7 +95,7 @@ const Products = () => {
         }
       );
 
-      toast.success("Product Updated ✅");
+      toast.success("Product Updated ");
       resetForm();
       fetchProducts();
     } catch {
@@ -100,7 +103,6 @@ const Products = () => {
     }
   };
 
-  // ❌ DELETE
   const deleteProduct = async (id) => {
     try {
       const token = localStorage.getItem("token");
@@ -111,14 +113,13 @@ const Products = () => {
         },
       });
 
-      toast.success("Deleted ✅");
+      toast.success("Deleted ");
       fetchProducts();
     } catch {
       toast.error("Error deleting ❌");
     }
   };
 
-  // 🔄 RESET
   const resetForm = () => {
     setForm({
       name: "",
@@ -132,11 +133,17 @@ const Products = () => {
     });
   };
 
-  // 🔍 FILTER
+  // SMART SEARCH (MAGGI FIX)
   const filteredProducts = products
-    .filter((p) =>
-      p.name.toLowerCase().includes(search.toLowerCase())
-    )
+    .filter((p) => {
+      const text = search.trim().toLowerCase();
+
+      return (
+        (p.name || "").toLowerCase().includes(text) ||
+        (p.category || "").toLowerCase().includes(text) ||
+        (p.description || "").toLowerCase().includes(text)
+      );
+    })
     .filter((p) =>
       category ? p.category === category : true
     );
@@ -146,25 +153,37 @@ const Products = () => {
       <div className="p-6 bg-gray-100 min-h-screen">
 
         <h1 className="text-2xl font-bold mb-6">
-          📦 Product Management
+           Product Management ({products.length})
         </h1>
 
-        {/* SEARCH */}
-        <input
-          placeholder="Search product..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full mb-4 p-3 border rounded-lg"
-        />
+        {/*  SEARCH */}
+        <div className="flex gap-2 mb-4">
+          <input
+            placeholder="Search product (e.g. maggi)..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full p-3 border rounded-lg"
+          />
+          <button
+            onClick={() => setSearch("")}
+            className="bg-gray-300 px-3 rounded"
+          >
+            ✖
+          </button>
+        </div>
 
-        {/* CATEGORY */}
+        {/* CATEGORY FILTER */}
         <select
+          value={category}
           onChange={(e) => setCategory(e.target.value)}
           className="mb-4 p-2 border rounded"
         >
           <option value="">All Categories</option>
-          <option value="Footwear">Footwear</option>
-          <option value="Clothing">Clothing</option>
+          {categories.map((cat, i) => (
+            <option key={i} value={cat}>
+              {cat}
+            </option>
+          ))}
         </select>
 
         {/* FORM */}
@@ -174,35 +193,34 @@ const Products = () => {
         >
           <input name="name" placeholder="Name" value={form.name} onChange={handleChange} className="border p-2 rounded" />
           <input name="sku" placeholder="SKU" value={form.sku} onChange={handleChange} className="border p-2 rounded" />
-          <input name="category" placeholder="Category" value={form.category} onChange={handleChange} className="border p-2 rounded" />
+
+          <select
+            name="category"
+            value={form.category}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          >
+            <option value="">Select Category</option>
+            {categories.map((cat, i) => (
+              <option key={i} value={cat}>{cat}</option>
+            ))}
+          </select>
+
           <input name="price" type="number" placeholder="Price" value={form.price} onChange={handleChange} className="border p-2 rounded" />
           <input name="stock" type="number" placeholder="Stock" value={form.stock} onChange={handleChange} className="border p-2 rounded" />
           <input name="barcode" placeholder="Barcode" value={form.barcode} onChange={handleChange} className="border p-2 rounded" />
 
-          <input
-            name="description"
-            placeholder="Description"
-            value={form.description}
-            onChange={handleChange}
-            className="border p-2 rounded col-span-2"
-          />
+          <input name="description" placeholder="Description" value={form.description} onChange={handleChange} className="border p-2 rounded col-span-2" />
+          <input name="image" placeholder="Image URL" value={form.image} onChange={handleChange} className="border p-2 rounded col-span-2" />
 
-          <input
-            name="image"
-            placeholder="Image URL"
-            value={form.image}
-            onChange={handleChange}
-            className="border p-2 rounded col-span-2"
-          />
-
-          <button className="bg-blue-600 text-white py-2 rounded col-span-2 hover:bg-blue-700">
-            ➕ Add Product
+          <button className="bg-blue-600 text-white py-2 rounded col-span-2">
+            Add Product
           </button>
 
           <button
             type="button"
             onClick={updateProduct}
-            className="bg-green-600 text-white py-2 rounded col-span-2 hover:bg-green-700"
+            className="bg-green-600 text-white py-2 rounded col-span-2"
           >
             ✏️ Update Product
           </button>
@@ -210,45 +228,53 @@ const Products = () => {
 
         {/* PRODUCTS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {filteredProducts.map((p) => (
-            <div
-              key={p._id}
-              className="bg-white p-4 rounded-xl shadow hover:shadow-xl transition duration-300"
-            >
-              <img
-                src={p.image || "https://via.placeholder.com/150"}
-                alt={p.name}
-                className="w-full h-32 object-cover rounded mb-2"
-              />
 
-              <h3 className="font-bold text-lg">{p.name}</h3>
+          {filteredProducts.length === 0 ? (
+            <p className="text-gray-400 col-span-3 text-center">
+              No products found 
+            </p>
+          ) : (
+            filteredProducts.map((p) => (
+              <div key={p._id} className="bg-white p-4 rounded-xl shadow">
 
-              <p className="text-blue-600 font-semibold">
-                ₹ {p.price}
-              </p>
+                <img
+                  src={p.image || "https://via.placeholder.com/150"}
+                  className="w-full h-32 object-cover rounded mb-2"
+                />
 
-              <p className="text-sm text-gray-500">
-                Stock: {p.stock}
-              </p>
+                <h3 className="font-bold">{p.name}</h3>
+                <p>₹ {p.price}</p>
+                <p>Stock: {p.stock}</p>
+                <p className="text-sm text-gray-500">
+                  Category: {p.category}
+                </p>
 
-              {/* BUTTONS */}
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => setForm(p)}
-                  className="flex-1 bg-yellow-500 text-white py-1 rounded hover:bg-yellow-600"
-                >
-                  ✏️ Edit
-                </button>
+                {p.stock < 5 && (
+                  <p className="text-red-500 text-xs">
+                    Low Stock 
+                  </p>
+                )}
 
-                <button
-                  onClick={() => deleteProduct(p._id)}
-                  className="flex-1 bg-red-500 text-white py-1 rounded hover:bg-red-600"
-                >
-                  🗑 Delete
-                </button>
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={() => setForm(p)}
+                    className="bg-yellow-500 text-white px-2 py-1 rounded"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => deleteProduct(p._id)}
+                    className="bg-red-500 text-white px-2 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
+
               </div>
-            </div>
-          ))}
+            ))
+          )}
+
         </div>
 
       </div>

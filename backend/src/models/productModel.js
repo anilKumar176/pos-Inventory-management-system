@@ -11,12 +11,12 @@ const productSchema = new mongoose.Schema(
   sku: {
     type: String,
     unique: true,
-    default: () => "SKU-" + Date.now(), // 🔥 auto generate
+    default: () => "SKU-" + Date.now(), //  auto generate
   },
 
   category: {
     type: String,
-    default: "General", // 🔥 default fix
+    default: "General", //  default fix
   },
 
   price: {
