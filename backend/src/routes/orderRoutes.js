@@ -4,10 +4,10 @@ const router = express.Router();
 const { createOrder, getOrders } = require("../controllers/orderController");
 const { protect } = require("../middleware/authMiddleware");
 
-// ✅ CREATE ORDER
+//  CREATE ORDER
 router.post("/", protect, createOrder);
 
-// ✅ GET ORDERS
+//  GET ORDERS
 router.get("/", protect, getOrders);
 
 module.exports = router;

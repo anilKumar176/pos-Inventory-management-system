@@ -40,7 +40,7 @@ const Orders = () => {
 
         {/*  SEARCH */}
         <input
-          placeholder="🔍 Search Order ID..."
+          placeholder=" Search Order ID..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full mb-4 p-3 border rounded-lg"
