@@ -11,12 +11,12 @@ const productSchema = new mongoose.Schema(
   sku: {
     type: String,
     unique: true,
-    default: () => "SKU-" + Date.now(), //  auto generate
+    default: () => "SKU-" + Date.now(),
   },
 
   category: {
     type: String,
-    default: "General", //  default fix
+    default: "General",
   },
 
   price: {
@@ -31,7 +31,9 @@ const productSchema = new mongoose.Schema(
 
   barcode: {
     type: String,
-    default: "",
+    unique: true,        // 🔥 IMPORTANT
+    sparse: true,        // allow null but unique when exists
+    trim: true,
   },
 
   description: {
