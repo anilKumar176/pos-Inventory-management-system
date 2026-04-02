@@ -1,40 +1,64 @@
 const mongoose = require("mongoose");
-//order Schema
-const orderSchema = new mongoose.Schema(
-{
-  items: [
-    {
-      product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-        required: true
-      },
-      quantity: {
-        type: Number,
-        required: true
-      },
-      price: {
-        type: Number,
-        required: true
-      }
-    }
-  ],
 
-  totalAmount: {
-    type: Number,
-    required: true
+// 📦 ITEM SCHEMA (clean separation)
+const itemSchema = new mongoose.Schema({
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: true,
   },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+});
 
-  paymentMethod: {
-    type: String,
-    enum: ["cash", "card", "upi"],
-    default: "cash"
+// 🧾 ORDER SCHEMA
+const orderSchema = new mongoose.Schema(
+  {
+    items: [itemSchema],
+
+    totalAmount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: ["cash", "card", "upi"],
+      default: "cash",
+    },
+
+    // 🔥 CUSTOMER INFO
+    customerName: {
+      type: String,
+      trim: true,
+      default: "Guest",
+    },
+
+    customerPhone: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    // 🔥 OPTIONAL (future use)
+    orderStatus: {
+      type: String,
+      enum: ["pending", "completed", "cancelled"],
+      default: "completed",
+    },
+  },
+  {
+    timestamps: true,
   }
-
-},
-{
-  timestamps: true
-}
 );
 
 module.exports = mongoose.model("Order", orderSchema);
