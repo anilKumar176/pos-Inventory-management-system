@@ -1,54 +1,60 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
+import {
+  FaHome,
+  FaBox,
+  FaShoppingCart,
+  FaChartBar,
+  FaCashRegister,
+  FaSignOutAlt,
+  FaBars,
+  FaTimes,
+  FaUsers
+} from "react-icons/fa";
 
 const Layout = ({ children }) => {
   const location = useLocation();
-
-  // USER
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  //  MOBILE MENU
   const [open, setOpen] = useState(false);
 
-  //  MENU
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  // 🔥 BASE MENU (cashier + admin)
   let menu = [
-    { name: "POS Billing", path: "/pos" },
-    { name: "Orders", path: "/orders" },
-    { name: "Report", path: "/report" }
+    { name: "POS Billing", path: "/pos", icon: <FaCashRegister /> },
+    { name: "Orders", path: "/orders", icon: <FaShoppingCart /> },
+    { name: "Report", path: "/report", icon: <FaChartBar /> },
   ];
 
+  // 👑 ADMIN MENU ADD
   if (user?.role === "admin") {
     menu = [
-      { name: "Dashboard", path: "/dashboard" },
+      { name: "Dashboard", path: "/dashboard", icon: <FaHome /> },
       ...menu,
-      { name: "Products", path: "/products" },
-      { name: "Low Stock", path: "/low-stock" },
+      { name: "Products", path: "/products", icon: <FaBox /> },
+      { name: "Low Stock", path: "/low-stock", icon: <FaBox /> },
+      { name: "Users", path: "/users", icon: <FaUsers /> }, // 🔥 ADDED
     ];
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-200">
 
       {/* MOBILE TOP BAR */}
-      <div className="md:hidden flex justify-between items-center bg-white p-4 shadow">
-        <h1 className="font-bold text-blue-600">Retail POS</h1>
+      <div className="md:hidden flex justify-between items-center bg-white p-4 shadow-md">
+        <h1 className="font-bold text-blue-600 text-lg">Retail POS</h1>
 
-        <button
-          onClick={() => setOpen(!open)}
-          className="text-xl"
-        >
+        <button onClick={() => setOpen(!open)} className="text-xl">
+          {open ? <FaTimes /> : <FaBars />}
         </button>
       </div>
 
       {/* MOBILE SIDEBAR */}
       {open && (
-        <div className="fixed top-0 left-0 w-64 h-full bg-white shadow-lg p-6 z-50 md:hidden">
+        <div className="fixed top-0 left-0 w-64 h-full bg-white shadow-xl p-6 z-50 md:hidden">
 
-          <button
-            onClick={() => setOpen(false)}
-            className="mb-4 text-right w-full"
-          >
-          </button>
+          <h1 className="text-xl font-bold mb-6 text-blue-600">
+            Retail POS
+          </h1>
 
           <nav className="space-y-3">
             {menu.map((item) => (
@@ -56,42 +62,57 @@ const Layout = ({ children }) => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setOpen(false)}
-                className={`block p-2 rounded ${
+                className={`flex items-center gap-3 p-3 rounded-xl ${
                   location.pathname === item.path
-                    ? "bg-blue-600 text-white"
+                    ? "bg-blue-500 text-white"
                     : "hover:bg-gray-100"
                 }`}
               >
+                {item.icon}
                 {item.name}
               </Link>
             ))}
           </nav>
+
+          {/* LOGOUT */}
+          <button
+            onClick={() => {
+              localStorage.clear();
+              window.location.href = "/";
+            }}
+            className="mt-6 w-full flex items-center justify-center gap-2 bg-red-500 text-white py-2 rounded-lg"
+          >
+            <FaSignOutAlt /> Logout
+          </button>
         </div>
       )}
 
-      {/*  DESKTOP SIDEBAR */}
-      <div className="hidden md:block w-64 bg-white shadow-lg p-6">
+      {/* DESKTOP SIDEBAR */}
+      <div className="hidden md:flex flex-col w-64 bg-white shadow-xl p-6">
 
         <h1 className="text-2xl font-bold mb-6 text-blue-600">
-          Retail POS
+          RetailSync
         </h1>
 
-        <p className="text-sm text-gray-500 mb-4">
-          Logged in as:{" "}
-          <span className="font-semibold">{user?.role}</span>
+        <p className="text-sm text-gray-500 mb-6">
+          Logged in as:
+          <span className="ml-1 font-semibold text-gray-700">
+            {user?.role}
+          </span>
         </p>
 
-        <nav className="space-y-3">
+        <nav className="space-y-2 flex-1">
           {menu.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`block p-2 rounded ${
+              className={`flex items-center gap-3 p-3 rounded-xl ${
                 location.pathname === item.path
-                  ? "bg-blue-600 text-white"
+                  ? "bg-blue-500 text-white"
                   : "hover:bg-gray-100"
               }`}
             >
+              {item.icon}
               {item.name}
             </Link>
           ))}
@@ -103,16 +124,17 @@ const Layout = ({ children }) => {
             localStorage.clear();
             window.location.href = "/";
           }}
-          className="mt-6 w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"
+          className="mt-6 flex items-center justify-center gap-2 bg-red-500 text-white py-2 rounded-xl"
         >
-          Logout
+          <FaSignOutAlt /> Logout
         </button>
       </div>
 
-      {/*  MAIN CONTENT */}
-      <div className="flex-1 p-4 md:p-6">
+      {/* MAIN CONTENT */}
+      <div className="flex-1 p-4 md:p-8">
         {children}
       </div>
+
     </div>
   );
 };
