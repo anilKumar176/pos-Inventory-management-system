@@ -1,6 +1,7 @@
 const Product = require("../models/productModel");
 const Order = require("../models/orderModel");
 
+
 // ➕ CREATE PRODUCT
 const createProduct = async (req, res) => {
   try {
@@ -22,12 +23,22 @@ const createProduct = async (req, res) => {
       });
     }
 
-    // ✅ DUPLICATE SKU CHECK
+    // ✅ SKU DUPLICATE CHECK
     if (sku) {
       const exist = await Product.findOne({ sku });
       if (exist) {
         return res.status(400).json({
           message: "SKU already exists",
+        });
+      }
+    }
+
+    // ✅ BARCODE DUPLICATE CHECK (🔥 NEW)
+    if (barcode) {
+      const existBarcode = await Product.findOne({ barcode });
+      if (existBarcode) {
+        return res.status(400).json({
+          message: "Barcode already exists",
         });
       }
     }
@@ -52,6 +63,7 @@ const createProduct = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // 📦 GET PRODUCTS (PAGINATION)
 const getProducts = async (req, res) => {
@@ -81,7 +93,8 @@ const getProducts = async (req, res) => {
   }
 };
 
-// 🔍 GET SINGLE PRODUCT
+
+// 🔍 GET PRODUCT BY ID
 const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -99,16 +112,31 @@ const getProductById = async (req, res) => {
   }
 };
 
+
 // ✏️ UPDATE PRODUCT
 const updateProduct = async (req, res) => {
   try {
-    // ❌ SKU duplicate check on update
+
+    // ✅ SKU CHECK
     if (req.body.sku) {
       const exist = await Product.findOne({ sku: req.body.sku });
 
       if (exist && exist._id.toString() !== req.params.id) {
         return res.status(400).json({
           message: "SKU already exists",
+        });
+      }
+    }
+
+    // ✅ BARCODE CHECK (🔥 NEW)
+    if (req.body.barcode) {
+      const existBarcode = await Product.findOne({
+        barcode: req.body.barcode,
+      });
+
+      if (existBarcode && existBarcode._id.toString() !== req.params.id) {
+        return res.status(400).json({
+          message: "Barcode already exists",
         });
       }
     }
@@ -133,6 +161,7 @@ const updateProduct = async (req, res) => {
   }
 };
 
+
 // ❌ DELETE PRODUCT
 const deleteProduct = async (req, res) => {
   try {
@@ -151,6 +180,7 @@ const deleteProduct = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // 🔍 SEARCH PRODUCTS
 const searchProducts = async (req, res) => {
@@ -179,9 +209,17 @@ const searchProducts = async (req, res) => {
   }
 };
 
-// 📦 BARCODE SEARCH
+
+// 📦 BARCODE SEARCH (🔥 IMPROVED)
 const getProductByBarcode = async (req, res) => {
   try {
+
+    if (!req.params.barcode) {
+      return res.status(400).json({
+        message: "Barcode is required",
+      });
+    }
+
     const product = await Product.findOne({
       barcode: req.params.barcode,
     });
@@ -199,6 +237,7 @@ const getProductByBarcode = async (req, res) => {
   }
 };
 
+
 // ⚠️ LOW STOCK
 const getLowStockProducts = async (req, res) => {
   try {
@@ -212,6 +251,7 @@ const getLowStockProducts = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // 📊 SALES REPORT
 const getSalesByDate = async (req, res) => {
@@ -243,6 +283,7 @@ const getSalesByDate = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 module.exports = {
   createProduct,
