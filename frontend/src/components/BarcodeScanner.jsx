@@ -17,7 +17,6 @@ const BarcodeScanner = ({ onScan }) => {
         return;
       }
 
-      // 🔥 rear camera select
       const backCamera =
         devices.find((d) =>
           d.label.toLowerCase().includes("back")
@@ -29,8 +28,10 @@ const BarcodeScanner = ({ onScan }) => {
           fps: 10,
           qrbox: { width: 250, height: 150 },
         },
-        (decodedText) => {
-          onScan(decodedText);
+        async (decodedText) => {
+          //  IMPORTANT FIX
+          await stopScanner();   // stop after scan
+          onScan(decodedText);   // send barcode
         },
         () => {}
       );
@@ -43,12 +44,14 @@ const BarcodeScanner = ({ onScan }) => {
 
   const stopScanner = async () => {
     if (scannerRef.current) {
-      await scannerRef.current.stop().catch(() => {});
+      try {
+        await scannerRef.current.stop();
+        await scannerRef.current.clear();
+      } catch {}
       setIsScanning(false);
     }
   };
 
-  // 🔄 cleanup
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
@@ -59,14 +62,13 @@ const BarcodeScanner = ({ onScan }) => {
 
   return (
     <div className="text-center mb-4">
-      
-      {/* 🔘 BUTTONS */}
+
       {!isScanning ? (
         <button
           onClick={startScanner}
           className="bg-blue-600 text-white px-4 py-2 rounded"
         >
-          📷 Start Scanner
+           Start Scanner
         </button>
       ) : (
         <button
@@ -77,7 +79,6 @@ const BarcodeScanner = ({ onScan }) => {
         </button>
       )}
 
-      {/* 📷 CAMERA VIEW */}
       <div
         id="reader"
         style={{
