@@ -11,7 +11,7 @@ const LowStock = () => {
     checkLowStock();
   }, []);
 
-  //  FETCH LOW STOCK
+  
   const fetchLowStock = async () => {
     try {
       const res = await API.get("/products/low-stock");
