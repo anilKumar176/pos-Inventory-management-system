@@ -1,33 +1,69 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 const Invoice = () => {
   const { state } = useLocation();
+  const navigate = useNavigate();
   const invoiceRef = useRef();
 
-  if (!state) return <h2>No Invoice Data</h2>;
+  const [data, setData] = useState(null);
 
-  const { items, total, paymentMethod } = state;
+  //  LOAD FROM STATE OR LOCALSTORAGE
+  useEffect(() => {
+    if (state) {
+      localStorage.setItem("invoice", JSON.stringify(state));
+      setData(state);
+    } else {
+      const saved = localStorage.getItem("invoice");
+      if (saved) {
+        setData(JSON.parse(saved));
+      }
+    }
+  }, [state]);
 
+  if (!data) return <h2 className="text-center mt-10">No Invoice Data</h2>;
+
+  const { items, total, paymentMethod } = data;
+
+  const date = new Date().toLocaleString();
+
+  //  BETTER INVOICE NO
+  const invoiceNo = `INV-${Date.now()}`;
+
+  //  GST CALCULATION
+  const gstRate = 0.18;
+  const subtotal = total / (1 + gstRate);
+  const gst = total - subtotal;
+
+  //  PDF DOWNLOAD
   const downloadPDF = async () => {
-    const canvas = await html2canvas(invoiceRef.current);
+    const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
     const imgData = canvas.toDataURL("image/png");
 
-    const pdf = new jsPDF();
-    pdf.addImage(imgData, "PNG", 10, 10, 180, 0);
-    pdf.save("invoice.pdf");
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const imgWidth = 190;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+    pdf.save(`${invoiceNo}.pdf`);
+  };
+
+  // 🖨 PRINT
+  const printInvoice = () => {
+    window.print();
   };
 
   return (
     <Layout>
       <div className="p-6 bg-gray-100 min-h-screen flex justify-center">
 
-        <div className="w-full max-w-xl">
+        <div className="w-full max-w-2xl">
 
-          {/* 🧾 BILL */}
+          {/*  INVOICE */}
           <div
             ref={invoiceRef}
             className="bg-white p-6 rounded-xl shadow-lg"
@@ -36,7 +72,7 @@ const Invoice = () => {
             {/* HEADER */}
             <div className="text-center mb-4">
               <h1 className="text-2xl font-bold text-blue-600">
-                Retail POS Store
+                My POS Store
               </h1>
               <p className="text-sm text-gray-500">
                 Bhopal, India
@@ -48,34 +84,44 @@ const Invoice = () => {
 
             <hr className="my-3" />
 
-            {/* DATE */}
-            <p className="text-sm text-gray-500 mb-2">
-              Date: {new Date().toLocaleString()}
-            </p>
-
-            {/* ITEMS */}
-            <div className="mb-4">
-              {items.map((item, i) => (
-                <div
-                  key={i}
-                  className="flex justify-between text-sm mb-1"
-                >
-                  <span>
-                    {item.name} ({item.qty})
-                  </span>
-                  <span>
-                    ₹ {item.price * item.qty}
-                  </span>
-                </div>
-              ))}
+            {/* INFO */}
+            <div className="flex justify-between text-sm mb-3">
+              <p><b>Invoice No:</b> {invoiceNo}</p>
+              <p><b>Date:</b> {date}</p>
             </div>
 
-            <hr className="my-3" />
+            {/* TABLE */}
+            <table className="w-full text-sm border mt-2">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2 border">Product</th>
+                  <th className="p-2 border">Qty</th>
+                  <th className="p-2 border">Price</th>
+                  <th className="p-2 border">Total</th>
+                </tr>
+              </thead>
 
-            {/* TOTAL */}
-            <div className="flex justify-between font-bold text-lg">
-              <span>Total</span>
-              <span>₹ {total}</span>
+              <tbody>
+                {items.map((item, i) => (
+                  <tr key={i}>
+                    <td className="p-2 border">{item.name}</td>
+                    <td className="p-2 border text-center">{item.qty}</td>
+                    <td className="p-2 border text-center">₹ {item.price}</td>
+                    <td className="p-2 border text-center">
+                      ₹ {item.price * item.qty}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* BILL DETAILS */}
+            <div className="text-right mt-4 space-y-1">
+              <p>Subtotal: ₹ {subtotal.toFixed(2)}</p>
+              <p>GST (18%): ₹ {gst.toFixed(2)}</p>
+              <h2 className="text-xl font-bold text-blue-600">
+                Grand Total: ₹ {total.toFixed(2)}
+              </h2>
             </div>
 
             {/* PAYMENT */}
@@ -87,18 +133,34 @@ const Invoice = () => {
 
             {/* FOOTER */}
             <p className="text-center text-xs text-gray-400 mt-4">
-              Thank you for shopping with us ❤️
+              Thank you for shopping with us 
             </p>
 
           </div>
 
-          {/* DOWNLOAD BUTTON */}
-          <button
-            onClick={downloadPDF}
-            className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700"
-          >
-            📥 Download Invoice PDF
-          </button>
+          {/* BUTTONS */}
+          <div className="flex gap-3 mt-4 no-print">
+            <button
+              onClick={downloadPDF}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg"
+            >
+               Download PDF
+            </button>
+
+            <button
+              onClick={printInvoice}
+              className="w-full bg-green-600 text-white py-3 rounded-lg"
+            >
+              🖨 Print
+            </button>
+
+            <button
+              onClick={() => navigate("/pos")}
+              className="w-full bg-gray-600 text-white py-3 rounded-lg"
+            >
+              Back
+            </button>
+          </div>
 
         </div>
       </div>
