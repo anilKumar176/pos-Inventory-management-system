@@ -23,10 +23,11 @@ const Dashboard = () => {
     totalRevenue: 0,
     totalProducts: 0,
     lowStockProducts: [],
+    totalCustomers: 0,
   });
   const [topProducts, setTopProducts] = useState([]);
   const [salesData, setSalesData] = useState([]);
-  const [userCount, setUserCount] = useState(0); // ✅ NEW
+  const [userCount, setUserCount] = useState(0);
 
   useEffect(() => {
     fetchAll();
@@ -43,15 +44,13 @@ const Dashboard = () => {
       const statsRes = await API.get("/reports/dashboard");
       const topRes = await API.get("/reports/top-products");
       const salesRes = await API.get("/reports/sales-graph");
-
-      // ✅ USER COUNT API
       const userRes = await API.get("/auth/count");
 
       setOrders(ordersRes.data.orders || ordersRes.data);
       setStats(statsRes.data);
-      setTopProducts(topRes.data);
-      setSalesData(salesRes.data);
-      setUserCount(userRes.data.totalUsers); // ✅ IMPORTANT
+      setTopProducts(topRes.data.data || []);
+      setSalesData(salesRes.data.data || []);
+      setUserCount(userRes.data.totalUsers);
 
     } catch (err) {
       console.log("Dashboard Error:", err);
@@ -79,122 +78,97 @@ const Dashboard = () => {
     },
   ];
 
-  const COLORS = ["#3b82f6", "#10b981", "#f59e0b"];
-
   return (
     <Layout>
-      <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="p-6 min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
 
-        <h1 className="text-3xl font-bold mb-6">
-          📊 Dashboard Overview
+        {/* HEADER */}
+        <h1 className="text-3xl font-bold mb-6 text-white">
+          📊 Dashboard
         </h1>
 
         {/* KPI CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
 
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="text-gray-500 text-sm">Total Orders</h3>
-            <p className="text-2xl font-bold">{stats.totalOrders}</p>
-          </div>
-
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="text-gray-500 text-sm">Revenue</h3>
-            <p className="text-2xl font-bold text-blue-600">
-              ₹ {stats.totalRevenue}
-            </p>
-          </div>
-
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="text-gray-500 text-sm">Products</h3>
-            <p className="text-2xl font-bold">{stats.totalProducts}</p>
-          </div>
-
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="text-gray-500 text-sm">Low Stock</h3>
-            <p className="text-2xl font-bold text-red-500">
-              {stats.lowStockProducts?.length}
-            </p>
-          </div>
-
-          {/* ✅ NEW USER CARD */}
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="text-gray-500 text-sm">Users</h3>
-            <p className="text-2xl font-bold text-green-600">
-              {userCount}
-            </p>
-          </div>
+          <Card title="Orders" value={stats.totalOrders} color="bg-indigo-600" />
+          <Card title="Revenue" value={`₹ ${stats.totalRevenue}`} color="bg-green-600" />
+          <Card title="Products" value={stats.totalProducts} color="bg-blue-600" />
+          <Card title="Low Stock" value={stats.lowStockProducts?.length} color="bg-red-600" />
+          <Card title="Users" value={userCount} color="bg-purple-600" />
+          <Card title="Customers" value={stats.totalCustomers} color="bg-orange-600" />
 
         </div>
 
         {/* CHARTS */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 p-4 rounded-xl bg-gray-800 shadow-inner">
 
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="mb-3 font-semibold">Sales Trend</h3>
+          {/* SALES */}
+          <ChartBox title="Sales Trend">
+            <LineChart data={salesData}>
+              <CartesianGrid stroke="#374151" />
+              <XAxis dataKey="date" stroke="#9CA3AF" />
+              <YAxis stroke="#9CA3AF" />
+              <Tooltip contentStyle={{ backgroundColor: "#111827", border: "none", color: "#fff" }} />
+              <Line
+                type="monotone"
+                dataKey="totalRevenue"
+                stroke="#22C55E"
+                strokeWidth={3}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ChartBox>
 
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={salesData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="totalRevenue" stroke="#3b82f6" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {/* PAYMENT */}
+          <ChartBox title="Payment Split">
+            <PieChart>
+              <Pie data={paymentData} dataKey="value" outerRadius={100}>
+                {paymentData.map((_, i) => (
+                  <Cell key={i} fill={["#22C55E", "#3B82F6", "#F59E0B"][i]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={{ backgroundColor: "#111827", border: "none", color: "#fff" }} />
+            </PieChart>
+          </ChartBox>
 
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="mb-3 font-semibold">Payment Split</h3>
+          {/* TOP PRODUCTS */}
+          <ChartBox title="Top Products" full>
+            <BarChart data={topProducts}>
+              <CartesianGrid stroke="#374151" />
+              <XAxis dataKey="productName" stroke="#9CA3AF" />
+              <YAxis stroke="#9CA3AF" />
+              <Tooltip contentStyle={{ backgroundColor: "#111827", border: "none", color: "#fff" }} />
 
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie data={paymentData} dataKey="value" outerRadius={100} label>
-                  {paymentData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="bg-white p-4 rounded shadow md:col-span-2">
-            <h3 className="mb-3 font-semibold">Top Products</h3>
-
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={topProducts}>
-                <XAxis dataKey="productName" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="totalSold" fill="#10b981" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+              <Bar dataKey="totalSold" fill="#22C55E" radius={[10, 10, 0, 0]} />
+            </BarChart>
+          </ChartBox>
 
         </div>
 
-        {/* RECENT ORDERS */}
-        <div className="bg-white p-4 rounded shadow mt-6">
+        {/* ORDERS */}
+        <div className="bg-gray-800 mt-6 p-5 rounded-xl shadow border border-gray-700">
 
-          <h3 className="mb-3 font-semibold">Recent Orders</h3>
+          <h3 className="mb-4 font-semibold text-white">
+            Recent Orders
+          </h3>
 
           <table className="w-full text-sm">
-            <thead className="bg-gray-200">
+            <thead className="bg-gray-700 text-gray-300">
               <tr>
-                <th className="p-2">ID</th>
-                <th className="p-2">Amount</th>
-                <th className="p-2">Payment</th>
-                <th className="p-2">Date</th>
+                <th className="p-2 text-left">ID</th>
+                <th className="p-2 text-left">Amount</th>
+                <th className="p-2 text-left">Payment</th>
+                <th className="p-2 text-left">Date</th>
               </tr>
             </thead>
 
             <tbody>
               {orders.slice(0, 5).map((o) => (
-                <tr key={o._id} className="border-b">
+                <tr key={o._id} className="border-b border-gray-700 hover:bg-gray-700">
                   <td className="p-2">{o._id.slice(0, 6)}</td>
-                  <td className="p-2">₹ {o.totalAmount}</td>
-                  <td className="p-2">{o.paymentMethod}</td>
-                  <td className="p-2">
+                  <td className="p-2 font-medium">₹ {o.totalAmount}</td>
+                  <td className="p-2 capitalize">{o.paymentMethod}</td>
+                  <td className="p-2 text-gray-400">
                     {new Date(o.createdAt).toLocaleDateString()}
                   </td>
                 </tr>
@@ -208,5 +182,23 @@ const Dashboard = () => {
     </Layout>
   );
 };
+
+// CARD
+const Card = ({ title, value, color }) => (
+  <div className={`${color} text-white p-4 rounded-xl shadow-lg hover:scale-105 transition`}>
+    <h3 className="text-sm opacity-80">{title}</h3>
+    <p className="text-2xl font-bold mt-1">{value}</p>
+  </div>
+);
+
+// CHART BOX
+const ChartBox = ({ title, children, full }) => (
+  <div className={`bg-gray-900 p-5 rounded-xl shadow-lg border border-gray-700 ${full ? "md:col-span-2" : ""}`}>
+    <h3 className="mb-4 font-semibold text-white">{title}</h3>
+    <ResponsiveContainer width="100%" height={300}>
+      {children}
+    </ResponsiveContainer>
+  </div>
+);
 
 export default Dashboard;
