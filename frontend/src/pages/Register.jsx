@@ -7,7 +7,6 @@ const Register = () => {
     name: "",
     email: "",
     password: "",
-    role: "cashier",
   });
 
   const navigate = useNavigate();
@@ -20,7 +19,11 @@ const Register = () => {
     e.preventDefault();
 
     try {
-      await API.post("/auth/register", form);
+      await API.post("/auth/register", {
+        ...form,
+        role: "cashier",
+      });
+
       alert("User Registered Successfully");
       navigate("/");
     } catch (error) {
@@ -64,16 +67,6 @@ const Register = () => {
           className="w-full p-3 mb-4 border rounded-lg"
         />
 
-        {/* Role */}
-        <select
-          name="role"
-          onChange={handleChange}
-          className="w-full p-3 mb-4 border rounded-lg"
-        >
-          <option value="cashier">Cashier</option>
-          <option value="admin">Admin</option>
-        </select>
-
         <button className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700">
           Register
         </button>
@@ -87,7 +80,6 @@ const Register = () => {
             Login
           </span>
         </p>
-
       </form>
     </div>
   );
