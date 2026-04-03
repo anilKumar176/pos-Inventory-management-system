@@ -11,7 +11,6 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
-  //  FETCH ORDERS
   const fetchOrders = async () => {
     try {
       const res = await API.get("/orders");
@@ -21,7 +20,6 @@ const Orders = () => {
     }
   };
 
-  //  FILTER LOGIC
   const filteredOrders = orders
     .filter((o) =>
       o._id.toLowerCase().includes(search.toLowerCase())
@@ -32,24 +30,24 @@ const Orders = () => {
 
   return (
     <Layout>
-      <div className="p-6">
+      <div className="p-6 bg-gray-900 min-h-screen text-white">
 
-        <h1 className="text-2xl font-bold mb-6">
-           Order History
+        <h1 className="text-3xl font-bold mb-6 text-blue-400">
+          📦 Order History
         </h1>
 
-        {/*  SEARCH */}
+        {/* SEARCH */}
         <input
-          placeholder=" Search Order ID..."
+          placeholder="🔍 Search Order ID..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full mb-4 p-3 border rounded-lg"
+          className="w-full mb-4 p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none"
         />
 
-        {/* PAYMENT FILTER */}
+        {/* FILTER */}
         <select
           onChange={(e) => setPaymentFilter(e.target.value)}
-          className="mb-4 p-2 border rounded"
+          className="mb-6 p-3 rounded-lg bg-gray-800 border border-gray-700 text-white"
         >
           <option value="">All Payments</option>
           <option value="cash">Cash</option>
@@ -66,25 +64,25 @@ const Orders = () => {
           filteredOrders.map((order) => (
             <div
               key={order._id}
-              className="bg-white p-5 rounded-xl shadow mb-4 hover:shadow-md transition"
+              className="bg-gray-800 p-5 rounded-xl shadow-lg mb-4 hover:shadow-2xl transition"
             >
               {/* HEADER */}
               <div className="flex justify-between mb-3">
-                <p className="font-bold text-gray-800">
-                  Order ID: {order._id.slice(-6)}
+                <p className="font-bold text-white">
+                  Order ID: #{order._id.slice(-6)}
                 </p>
 
-                <p className="text-gray-500 text-sm">
+                <p className="text-gray-400 text-sm">
                   {new Date(order.createdAt).toLocaleString()}
                 </p>
               </div>
 
               {/* ITEMS */}
-              <div className="mb-3">
+              <div className="mb-3 space-y-1">
                 {order.items.map((item, i) => (
                   <div
                     key={i}
-                    className="flex justify-between text-sm mb-1"
+                    className="flex justify-between text-sm text-gray-300"
                   >
                     <span>
                       {item.product?.name || "Product"}
@@ -97,21 +95,21 @@ const Orders = () => {
                 ))}
               </div>
 
-              <hr className="my-2" />
+              <hr className="border-gray-700 my-2" />
 
               {/* FOOTER */}
               <div className="flex justify-between items-center mt-2">
-                <p className="font-semibold text-lg">
+                <p className="font-semibold text-lg text-green-400">
                   ₹ {order.totalAmount}
                 </p>
 
                 <span
-                  className={`px-3 py-1 rounded text-sm ${
+                  className={`px-3 py-1 rounded-full text-sm font-semibold ${
                     order.paymentMethod === "cash"
-                      ? "bg-green-100 text-green-700"
+                      ? "bg-green-600/20 text-green-400"
                       : order.paymentMethod === "card"
-                      ? "bg-purple-100 text-purple-700"
-                      : "bg-blue-100 text-blue-700"
+                      ? "bg-purple-600/20 text-purple-400"
+                      : "bg-blue-600/20 text-blue-400"
                   }`}
                 >
                   {order.paymentMethod.toUpperCase()}
