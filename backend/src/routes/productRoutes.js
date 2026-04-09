@@ -11,45 +11,60 @@ const {
   deleteProduct,
   searchProducts,
   getProductByBarcode,
-  getLowStockProducts
+  getLowStockProducts,
 } = require("../controllers/productController");
 
-/*
-CREATE PRODUCT
-Only admin can create products
-*/
-router.post("/create", protect, authorizeRoles("admin"), createProduct);
 
-/*
-SEARCH PRODUCTS
-Example:
-GET /api/products/search?keyword=nike
-*/
+// =============================
+// 📦 PRODUCT ROUTES
+// =============================
+
+// ➕ CREATE PRODUCT (ADMIN ONLY)
+router.post(
+  "/create",
+  protect,
+  authorizeRoles("admin"),
+  createProduct
+);
+
+
+// 🔍 SEARCH PRODUCTS
+// GET /api/products/search?keyword=abc
 router.get("/search", searchProducts);
+
+
+// 🔥 BARCODE SCAN (VERY IMPORTANT)
 router.get("/barcode/:barcode", getProductByBarcode);
+
+
+// ⚠️ LOW STOCK PRODUCTS
 router.get("/low-stock", getLowStockProducts);
-/*
-GET ALL PRODUCTS
-*/
+
+
+// 📦 GET ALL PRODUCTS
 router.get("/", getProducts);
 
-/*
-GET SINGLE PRODUCT
-*/
+
+// 🔍 GET SINGLE PRODUCT
 router.get("/:id", getProductById);
 
-/*
-UPDATE PRODUCT
-Only admin allowed
-*/
-router.put("/:id", protect, authorizeRoles("admin"), updateProduct);
 
-/*
-DELETE PRODUCT
-Only admin allowed
-*/
-router.delete("/:id", protect, authorizeRoles("admin"), deleteProduct);
+// ✏️ UPDATE PRODUCT (ADMIN ONLY)
+router.put(
+  "/:id",
+  protect,
+  authorizeRoles("admin"),
+  updateProduct
+);
 
+
+// ❌ DELETE PRODUCT (ADMIN ONLY)
+router.delete(
+  "/:id",
+  protect,
+  authorizeRoles("admin"),
+  deleteProduct
+);
 
 
 module.exports = router;

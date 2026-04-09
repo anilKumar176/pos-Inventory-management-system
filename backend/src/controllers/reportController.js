@@ -6,26 +6,43 @@ const Product = require("../models/productModel");
 // ==========================
 const getDashboardStats = async (req, res) => {
   try {
-    const totalOrders = await Order.countDocuments();
-    const totalProducts = await Product.countDocuments();
+    // 🔥 PARALLEL EXECUTION (FASTER)
+    const [totalOrders, totalProducts, orders, lowStockProducts] =
+      await Promise.all([
+        Order.countDocuments(),
+        Product.countDocuments(),
+        Order.find(),
+        Product.find({ stock: { $lt: 5 } }),
+      ]);
 
-    const orders = await Order.find();
-
+    // 💰 TOTAL REVENUE
     const totalRevenue = orders.reduce(
       (sum, o) => sum + o.totalAmount,
       0
     );
 
-    const lowStockProducts = await Product.find({ stock: { $lt: 5 } });
+    // 👤 UNIQUE CUSTOMERS
+    const uniqueCustomers = await Order.distinct("customerPhone");
 
-    res.json({
+    res.status(200).json({
+      success: true,
+
       totalOrders,
       totalRevenue,
       totalProducts,
       lowStockProducts,
+
+      // 🔥 NEW
+      totalCustomers: uniqueCustomers.length,
     });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("DASHBOARD ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
   }
 };
 
@@ -38,7 +55,10 @@ const getSalesByDate = async (req, res) => {
       {
         $group: {
           _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt",
+            },
           },
           totalRevenue: { $sum: "$totalAmount" },
         },
@@ -46,9 +66,18 @@ const getSalesByDate = async (req, res) => {
       { $sort: { _id: 1 } },
     ]);
 
-    res.json(sales);
+    res.status(200).json({
+      success: true,
+      data: sales,
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("SALES DATE ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -59,19 +88,51 @@ const getTopProducts = async (req, res) => {
   try {
     const topProducts = await Order.aggregate([
       { $unwind: "$items" },
+
       {
         $group: {
           _id: "$items.product",
           totalSold: { $sum: "$items.quantity" },
         },
       },
+
       { $sort: { totalSold: -1 } },
       { $limit: 5 },
+
+      // 🔥 PRODUCT DETAILS JOIN
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+
+      { $unwind: "$product" },
+
+      {
+        $project: {
+          _id: 0,
+          productId: "$product._id",
+          productName: "$product.name",
+          totalSold: 1,
+        },
+      },
     ]);
 
-    res.json(topProducts);
+    res.status(200).json({
+      success: true,
+      data: topProducts,
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("TOP PRODUCTS ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -84,7 +145,10 @@ const getSalesGraph = async (req, res) => {
       {
         $group: {
           _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt",
+            },
           },
           totalRevenue: { $sum: "$totalAmount" },
         },
@@ -92,14 +156,24 @@ const getSalesGraph = async (req, res) => {
       { $sort: { _id: 1 } },
     ]);
 
+    // 🔥 FORMAT FOR FRONTEND
     const formatted = sales.map((s) => ({
       date: s._id,
       totalRevenue: s.totalRevenue,
     }));
 
-    res.json(formatted);
+    res.status(200).json({
+      success: true,
+      data: formatted,
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("SALES GRAPH ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 

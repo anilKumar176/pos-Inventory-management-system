@@ -1,7 +1,7 @@
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 
-// 🔐 GENERATE TOKEN
+//  GENERATE TOKEN
 const generateToken = (id, role) => {
   return jwt.sign(
     { id, role },
@@ -31,7 +31,7 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // ✅ NO HASH (model करेगा)
+    //  NO HASH (model)
     const user = await User.create({
       name,
       email,
@@ -177,10 +177,8 @@ const deleteUser = async (req, res) => {
     });
   }
 };
+//manage getuser
 
-//
-// ================= USER COUNT =================
-//
 const getUserCount = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
