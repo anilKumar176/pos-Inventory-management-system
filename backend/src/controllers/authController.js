@@ -15,7 +15,7 @@ const generateToken = (id, role) => {
 //
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -31,12 +31,11 @@ const registerUser = async (req, res) => {
       });
     }
 
-    //  NO HASH (model)
     const user = await User.create({
       name,
       email,
       password,
-      role: "cashier",
+      role: role || "admin", //  FIXED
     });
 
     res.status(201).json({
