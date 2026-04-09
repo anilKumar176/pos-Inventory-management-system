@@ -84,7 +84,7 @@ const Dashboard = () => {
 
         {/* HEADER */}
         <h1 className="text-3xl font-bold mb-6 text-white">
-          📊 Dashboard
+           Dashboard
         </h1>
 
         {/* KPI CARDS */}

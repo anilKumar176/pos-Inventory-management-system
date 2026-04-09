@@ -1,55 +1,58 @@
 const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
-{
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-  },
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-  sku: {
-    type: String,
-    unique: true,
-    default: () => "SKU-" + Date.now(),
-  },
+    sku: {
+      type: String,
+      unique: true,
+      default: () => "SKU-" + Date.now(),
+    },
 
-  category: {
-    type: String,
-    default: "General",
-  },
+    category: {
+      type: String,
+      default: "General",
+    },
 
-  price: {
-    type: Number,
-    required: true,
-  },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
 
-  stock: {
-    type: Number,
-    default: 0,
-  },
+    stock: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
 
-  barcode: {
-    type: String,
-    unique: true,        // 🔥 IMPORTANT
-    sparse: true,        // allow null but unique when exists
-    trim: true,
-  },
+    // 🔥 BARCODE FIELD (UPDATED)
+    barcode: {
+      type: String,
+      unique: true,      // same barcode repeat nahi hoga
+      sparse: true,      // null allowed but unique when present
+      trim: true,
+    },
 
-  description: {
-    type: String,
-    default: "",
-  },
+    description: {
+      type: String,
+      default: "",
+      trim: true,
+    },
 
-  image: {
-    type: String,
-    default: "",
+    image: {
+      type: String,
+      default: "",
+    },
   },
-
-},
-{
-  timestamps: true,
-}
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model("Product", productSchema);

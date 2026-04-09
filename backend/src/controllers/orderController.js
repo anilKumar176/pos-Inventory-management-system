@@ -6,13 +6,22 @@ const Product = require("../models/productModel");
 // ==========================
 const createOrder = async (req, res) => {
   try {
-    const { items, paymentMethod } = req.body;
+    // 🔥 UPDATED
+    const { items, paymentMethod, customerName, customerPhone } = req.body;
 
     // ✅ VALIDATION
     if (!items || items.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Cart is empty",
+      });
+    }
+
+    // 🔥 PHONE REQUIRED
+    if (!customerPhone) {
+      return res.status(400).json({
+        success: false,
+        message: "Customer phone required",
       });
     }
 
@@ -41,7 +50,7 @@ const createOrder = async (req, res) => {
       product.stock -= item.quantity;
       await product.save();
 
-      // 💰 SECURE PRICE (DB se)
+      // 💰 SECURE PRICE
       totalAmount += product.price * item.quantity;
 
       orderItems.push({
@@ -51,11 +60,15 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // 🧾 CREATE ORDER
+    // 🧾 CREATE ORDER (🔥 UPDATED)
     const order = await Order.create({
       items: orderItems,
       totalAmount,
       paymentMethod: paymentMethod || "cash",
+
+      // 🔥 NEW FIELDS
+      customerName,
+      customerPhone,
     });
 
     res.status(201).json({
@@ -81,7 +94,7 @@ const getOrders = async (req, res) => {
   try {
     const orders = await Order.find()
       .populate("items.product", "name price sku")
-      .sort({ createdAt: -1 }); // 🔥 latest first
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,

@@ -45,7 +45,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// ✅ REMOVE PASSWORD FROM RESPONSE
+// REMOVE PASSWORD FROM RESPONSE
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;

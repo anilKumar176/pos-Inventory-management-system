@@ -2,9 +2,9 @@
   "name": "retailsync-pos",
   "version": "1.0.0",
   "main": "index.js",
- "scripts": {
-  "dev": "nodemon src/server.js",
-  "exec": "node src/server.js index.js"
+"scripts": {
+  "start": "node src/server.js",
+  "dev": "nodemon src/server.js"
 },
   "keywords": [],
   "author": "",

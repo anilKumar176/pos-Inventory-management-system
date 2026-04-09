@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-// 📦 ITEM SCHEMA (clean separation)
+//  ITEM SCHEMA
 const itemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
@@ -19,7 +19,7 @@ const itemSchema = new mongoose.Schema({
   },
 });
 
-// 🧾 ORDER SCHEMA
+//  ORDER SCHEMA
 const orderSchema = new mongoose.Schema(
   {
     items: [itemSchema],
@@ -36,7 +36,7 @@ const orderSchema = new mongoose.Schema(
       default: "cash",
     },
 
-    // 🔥 CUSTOMER INFO
+    //  CUSTOMER INFO
     customerName: {
       type: String,
       trim: true,
@@ -45,11 +45,11 @@ const orderSchema = new mongoose.Schema(
 
     customerPhone: {
       type: String,
+      required: true, //  important
       trim: true,
-      default: "",
     },
 
-    // 🔥 OPTIONAL (future use)
+    // OPTIONAL
     orderStatus: {
       type: String,
       enum: ["pending", "completed", "cancelled"],

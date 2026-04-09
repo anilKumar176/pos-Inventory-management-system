@@ -1,14 +1,14 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
-// 🔐 PROTECT MIDDLEWARE
+// 🔐 PROTECT ROUTE (AUTH REQUIRED)
 const protect = async (req, res, next) => {
   try {
     let token;
 
+    // ✅ GET TOKEN FROM HEADER
     const authHeader = req.headers.authorization;
 
-    // ✅ CHECK HEADER
     if (authHeader && authHeader.startsWith("Bearer ")) {
       token = authHeader.split(" ")[1];
     }
@@ -23,7 +23,7 @@ const protect = async (req, res, next) => {
     // 🔐 VERIFY TOKEN
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // 🔍 GET USER FROM DB
+    // 🔍 FIND USER
     const user = await User.findById(decoded.id).select("-password");
 
     if (!user) {
@@ -32,13 +32,13 @@ const protect = async (req, res, next) => {
       });
     }
 
-    // ✅ ATTACH USER
+    // ✅ ATTACH USER TO REQUEST
     req.user = user;
 
-    next(); // ✅ VERY IMPORTANT
+    next(); // ✅ IMPORTANT
 
   } catch (error) {
-    console.log("AUTH ERROR:", error);
+    console.log("AUTH ERROR:", error.message);
 
     return res.status(401).json({
       message: "Invalid or expired token",
@@ -46,28 +46,29 @@ const protect = async (req, res, next) => {
   }
 };
 
-// 👑 ROLE AUTHORIZATION
+
+// 👑 ROLE BASED AUTH
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     try {
-      // ❌ USER NOT FOUND
+      // ❌ USER NOT ATTACHED
       if (!req.user) {
         return res.status(401).json({
           message: "Not authorized",
         });
       }
 
-      // ❌ ROLE NOT MATCH
+      // ❌ ROLE CHECK
       if (!roles.includes(req.user.role)) {
         return res.status(403).json({
           message: "Access denied",
         });
       }
 
-      next(); // ✅ VERY IMPORTANT
+      next(); // ✅ IMPORTANT
 
     } catch (error) {
-      console.log("ROLE ERROR:", error);
+      console.log("ROLE ERROR:", error.message);
 
       return res.status(500).json({
         message: "Authorization failed",

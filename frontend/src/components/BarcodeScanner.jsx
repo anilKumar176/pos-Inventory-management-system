@@ -30,8 +30,8 @@ const BarcodeScanner = ({ onScan }) => {
         },
         async (decodedText) => {
           //  IMPORTANT FIX
-          await stopScanner();   // stop after scan
-          onScan(decodedText);   // send barcode
+          await stopScanner();   
+          onScan(decodedText);   
         },
         () => {}
       );

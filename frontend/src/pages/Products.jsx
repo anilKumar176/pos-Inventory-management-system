@@ -69,7 +69,7 @@ const Products = () => {
         }
       );
 
-      toast.success("Product Added ✅");
+      toast.success("Product Added ");
       resetForm();
       fetchProducts();
     } catch {
@@ -79,7 +79,7 @@ const Products = () => {
 
   const updateProduct = async () => {
     if (!form._id) {
-      toast.warning("Select product first ⚠️");
+      toast.warning("Select product first ");
       return;
     }
 
@@ -98,11 +98,11 @@ const Products = () => {
         }
       );
 
-      toast.success("Updated ✅");
+      toast.success("Updated ");
       resetForm();
       fetchProducts();
     } catch {
-      toast.error("Update failed ❌");
+      toast.error("Update failed ");
     }
   };
 
@@ -114,10 +114,10 @@ const Products = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      toast.success("Deleted ✅");
+      toast.success("Deleted ");
       fetchProducts();
     } catch {
-      toast.error("Delete failed ❌");
+      toast.error("Delete failed ");
     }
   };
 
@@ -141,10 +141,10 @@ const Products = () => {
       <div className="p-6 min-h-screen bg-gradient-to-br from-[#0f172a] via-[#020617] to-[#020617] text-white">
 
         <h1 className="text-3xl font-bold mb-6 text-indigo-400">
-          📦 Product Management
+           Product Management
         </h1>
 
-        {/* SEARCH */}
+        
         <input
           placeholder="Search product..."
           value={search}
@@ -171,7 +171,7 @@ const Products = () => {
           <input name="name" placeholder="Name" value={form.name} onChange={handleChange} className="input" />
           <input name="sku" placeholder="SKU" value={form.sku} onChange={handleChange} className="input" />
 
-          {/* 🔥 FIXED CATEGORY */}
+          {/*  FIXED CATEGORY */}
           <select
             name="category"
             value={form.category}
@@ -192,7 +192,7 @@ const Products = () => {
           <input name="image" placeholder="Image URL" value={form.image} onChange={handleChange} className="input col-span-2" />
 
           <button className="bg-indigo-600 hover:bg-indigo-700 py-2 rounded col-span-2 font-semibold">
-            ➕ Add Product
+             Add Product
           </button>
 
           <button
@@ -200,7 +200,7 @@ const Products = () => {
             onClick={updateProduct}
             className="bg-green-600 hover:bg-green-700 py-2 rounded col-span-2 font-semibold"
           >
-            ✏️ Update Product
+            Update Product
           </button>
         </form>
 

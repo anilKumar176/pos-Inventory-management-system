@@ -59,7 +59,7 @@ const CashierReport = () => {
       <div className="p-6 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
 
         <h1 className="text-3xl font-bold mb-6 text-blue-400">
-          📊 Daily Report
+           Daily Report
         </h1>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6">

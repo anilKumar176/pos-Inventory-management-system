@@ -1,21 +1,28 @@
-// SAME IMPORTS (unchanged)
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import API from "../services/api";
 import Layout from "../components/Layout";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import BarcodeScanner from "../components/BarcodeScanner";
 
 const POS = () => {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
 
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+
+  const [barcodeInput, setBarcodeInput] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
+
+  const inputRef = useRef();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchProducts();
+    inputRef.current?.focus();
   }, []);
 
   const fetchProducts = async () => {
@@ -27,52 +34,64 @@ const POS = () => {
     }
   };
 
-  const categories = [...new Set(products.map(p => p.category || "Other"))];
-
-  //  CART FUNCTIONS (UNCHANGED)
   const addToCart = (product) => {
-    const exist = cart.find((item) => item._id === product._id);
-    if (exist) {
-      setCart(cart.map((item) =>
-        item._id === product._id ? { ...item, qty: item.qty + 1 } : item
-      ));
-    } else {
-      setCart([...cart, { ...product, qty: 1 }]);
+    setCart((prev) => {
+      const exist = prev.find((item) => item._id === product._id);
+      if (exist) {
+        return prev.map((item) =>
+          item._id === product._id
+            ? { ...item, qty: item.qty + 1 }
+            : item
+        );
+      }
+      return [...prev, { ...product, qty: 1 }];
+    });
+  };
+
+  const fetchProduct = async (barcode) => {
+    if (!barcode) return;
+
+    try {
+      const res = await API.get(`/products/barcode/${barcode}`);
+      addToCart(res.data);
+
+      toast.success("Product added ");
+
+      setBarcodeInput("");
+      inputRef.current?.focus();
+      setShowScanner(false);
+    } catch {
+      toast.error("Product not found ❌");
     }
   };
 
-  const increaseQty = (id) => {
-    setCart(cart.map((item) =>
-      item._id === id ? { ...item, qty: item.qty + 1 } : item
-    ));
+  const handleScan = (barcode) => {
+    fetchProduct(barcode);
   };
 
-  const decreaseQty = (id) => {
-    setCart(cart
-      .map((item) =>
-        item._id === id ? { ...item, qty: item.qty - 1 } : item
-      )
-      .filter((item) => item.qty > 0)
-    );
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      fetchProduct(barcodeInput);
+    }
   };
 
-  const removeItem = (id) => {
-    setCart(cart.filter((item) => item._id !== id));
-  };
+  const total = cart.reduce(
+    (acc, item) => acc + item.price * item.qty,
+    0
+  );
 
-  // 💰 TOTAL + DISCOUNT
-  const total = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
-  const discount = total * 0.05; // 5%
-  const finalTotal = total - discount;
-
-  //  PLACE ORDER (UNCHANGED)
   const placeOrder = async () => {
-    try {
-      if (cart.length === 0) {
-        toast.warning("Cart is empty ");
-        return;
-      }
+    if (cart.length === 0) {
+      toast.warning("Cart empty ");
+      return;
+    }
 
+    if (!/^\d{10}$/.test(customerPhone)) {
+      toast.error("Invalid phone number ❌");
+      return;
+    }
+
+    try {
       const token = localStorage.getItem("token");
 
       const items = cart.map((item) => ({
@@ -81,161 +100,162 @@ const POS = () => {
         price: item.price,
       }));
 
-      await API.post("/orders",
-        { items, paymentMethod, totalAmount: finalTotal },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await API.post(
+        "/orders",
+        {
+          items,
+          totalAmount: total,
+          paymentMethod,
+          customerName,
+          customerPhone,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
-      toast.success("Order placed successfully ");
+      toast.success("Order placed ");
 
       navigate("/invoice", {
-        state: { items: cart, total: finalTotal, paymentMethod },
+        state: {
+          items: cart,
+          total,
+          paymentMethod,
+          customerName,
+        },
       });
 
       setCart([]);
-
-    } catch (err) {
-      console.log(err);
+      setCustomerName("");
+      setCustomerPhone("");
+    } catch {
       toast.error("Order failed ❌");
     }
   };
 
-  //  FILTER
   const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) &&
-    (category ? p.category === category : true)
+    p.name?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <Layout>
-      <div className="p-6 min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
+      {/* MAIN DARK BACKGROUND */}
+      <div className="p-6 min-h-screen bg-[#020617] text-white">
 
-        <h2 className="text-3xl font-bold mb-6 text-gray-800">
+        {/* HEADER */}
+        <h2 className="text-3xl font-bold mb-6 text-indigo-400">
            POS Billing ({cart.length} items)
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* CUSTOMER */}
+        <div className="bg-gray-800 p-4 rounded-xl mb-4 grid grid-cols-2 gap-3 shadow">
+          <input
+            placeholder="Customer Name"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            className="p-2 rounded bg-gray-900 border border-gray-700 text-white"
+          />
+          <input
+            placeholder="Phone"
+            value={customerPhone}
+            onChange={(e) => setCustomerPhone(e.target.value)}
+            className="p-2 rounded bg-gray-900 border border-gray-700 text-white"
+          />
+        </div>
+
+        {/* BARCODE */}
+        <div className="flex gap-2 mb-4">
+          <input
+            ref={inputRef}
+            placeholder="Scan barcode..."
+            value={barcodeInput}
+            onChange={(e) => setBarcodeInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="flex-1 p-2 rounded bg-gray-800 border border-gray-700 text-white"
+          />
+
+          <button
+            onClick={() => fetchProduct(barcodeInput)}
+            className="bg-green-600 hover:bg-green-700 px-4 rounded"
+          >
+            Add
+          </button>
+
+          <button
+            onClick={() => setShowScanner(!showScanner)}
+            className="bg-indigo-600 hover:bg-indigo-700 px-4 rounded"
+          >
+            📷
+          </button>
+        </div>
+
+        {showScanner && (
+          <div className="bg-gray-800 p-4 rounded-xl mb-4">
+            <BarcodeScanner onScan={handleScan} />
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-6">
 
           {/* PRODUCTS */}
-          <div className="bg-white p-5 rounded-2xl shadow-lg">
+          <div className="bg-gray-800 p-4 rounded-xl shadow">
+            <input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full p-2 mb-3 rounded bg-gray-900 border border-gray-700 text-white"
+            />
 
-            {/* SEARCH */}
-            <div className="flex gap-2 mb-3">
-              <input
-                type="text"
-                placeholder="🔍 Search product..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full p-3 border rounded-lg"
-              />
-              <button
-                onClick={() => setSearch("")}
-                className="bg-gray-300 px-3 rounded"
-              >
-                ✖
-              </button>
-            </div>
-
-            {/* CATEGORY */}
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full p-3 mb-5 border rounded-lg"
-            >
-              <option value="">All Categories</option>
-              {categories.map((cat, index) => (
-                <option key={index} value={cat}>
-                  {cat}
-                </option>
+            <div className="grid grid-cols-2 gap-3">
+              {filteredProducts.map((p) => (
+                <div
+                  key={p._id}
+                  onClick={() => addToCart(p)}
+                  className="bg-gray-700 hover:bg-indigo-600 transition p-3 rounded cursor-pointer"
+                >
+                  <p>{p.name}</p>
+                  <p className="text-green-400">₹{p.price}</p>
+                </div>
               ))}
-            </select>
-
-            {/* PRODUCTS */}
-            <div className="grid grid-cols-2 gap-4">
-              {filteredProducts.length === 0 ? (
-                <p className="text-gray-400 col-span-2 text-center">
-                  No products found 
-                </p>
-              ) : (
-                filteredProducts.map((p) => (
-                  <div
-                    key={p._id}
-                    onClick={() => addToCart(p)}
-                    className="bg-blue-50 p-3 rounded-xl shadow hover:shadow-xl cursor-pointer"
-                  >
-                    <img
-                      src={p.image || "https://via.placeholder.com/150"}
-                      className="w-full h-24 object-cover rounded mb-2"
-                    />
-
-                    <h3 className="text-sm font-semibold">
-                      {p.name}
-                    </h3>
-
-                    <p className="text-blue-600 font-bold">
-                      ₹{p.price}
-                    </p>
-
-                    {/* 🔥 LOW STOCK */}
-                    {p.stock < 5 && (
-                      <p className="text-red-500 text-xs">
-                        Low Stock 
-                      </p>
-                    )}
-                  </div>
-                ))
-              )}
             </div>
-
           </div>
 
           {/* CART */}
-          <div className="bg-white p-5 rounded-2xl shadow-lg flex flex-col">
+          <div className="bg-gray-800 p-4 rounded-xl shadow flex flex-col">
 
-            <h3 className="font-bold text-lg mb-4">🛒 Cart</h3>
+            <h3 className="text-indigo-400 mb-2">🛒 Cart</h3>
 
-            <div className="flex-1 overflow-y-auto">
-              {cart.length === 0 ? (
-                <p className="text-gray-400 text-center mt-10">
-                  Cart empty 
-                </p>
-              ) : (
-                cart.map((item) => (
-                  <div key={item._id} className="flex justify-between mb-3 border-b pb-2">
-
-                    <div>
-                      <p>{item.name}</p>
-                      <p className="text-sm text-gray-500">
-                        ₹{item.price} × {item.qty}
-                      </p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button onClick={() => decreaseQty(item._id)}>-</button>
-                      <span>{item.qty}</span>
-                      <button onClick={() => increaseQty(item._id)}>+</button>
-                      <button onClick={() => removeItem(item._id)}>✖</button>
-                    </div>
-
-                  </div>
-                ))
-              )}
+            <div className="flex-1 space-y-2">
+              {cart.map((item) => (
+                <div key={item._id} className="flex justify-between">
+                  <span>{item.name} x {item.qty}</span>
+                  <span className="text-green-400">
+                    ₹{item.price * item.qty}
+                  </span>
+                </div>
+              ))}
             </div>
 
-            {/* TOTAL */}
-            <div className="border-t pt-4">
-              <p>Total: ₹{total}</p>
-              <p className="text-green-600">Discount (5%): ₹{discount.toFixed(2)}</p>
-              <h3 className="font-bold text-blue-600">
-                Final: ₹{finalTotal.toFixed(2)}
+            <div className="border-t border-gray-700 pt-2 mt-2">
+              <h3 className="text-lg font-bold">
+                Total: <span className="text-green-400">₹{total}</span>
               </h3>
 
-              <button onClick={placeOrder} className="w-full bg-blue-600 text-white p-3 rounded mt-2">
-                 Place Order
-              </button>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full mt-2 p-2 bg-gray-900 border border-gray-700 rounded"
+              >
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="upi">UPI</option>
+              </select>
 
-              <button onClick={() => setCart([])} className="w-full mt-2 bg-gray-500 text-white p-2 rounded">
-                Clear Cart
+              <button
+                onClick={placeOrder}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 p-2 mt-3 rounded font-semibold"
+              >
+                Complete Payment
               </button>
             </div>
 

@@ -1,7 +1,6 @@
 const Product = require("../models/productModel");
 const Order = require("../models/orderModel");
 
-
 // ➕ CREATE PRODUCT
 const createProduct = async (req, res) => {
   try {
@@ -17,29 +16,25 @@ const createProduct = async (req, res) => {
     } = req.body;
 
     // ✅ VALIDATION
-    if (!name || !price) {
+    if (!name || price == null) {
       return res.status(400).json({
         message: "Name and Price are required",
       });
     }
 
-    // ✅ SKU DUPLICATE CHECK
+    // ✅ SKU DUPLICATE
     if (sku) {
       const exist = await Product.findOne({ sku });
       if (exist) {
-        return res.status(400).json({
-          message: "SKU already exists",
-        });
+        return res.status(400).json({ message: "SKU already exists" });
       }
     }
 
-    // ✅ BARCODE DUPLICATE CHECK (🔥 NEW)
+    // ✅ BARCODE DUPLICATE
     if (barcode) {
       const existBarcode = await Product.findOne({ barcode });
       if (existBarcode) {
-        return res.status(400).json({
-          message: "Barcode already exists",
-        });
+        return res.status(400).json({ message: "Barcode already exists" });
       }
     }
 
@@ -60,16 +55,16 @@ const createProduct = async (req, res) => {
 
   } catch (error) {
     console.log("CREATE ERROR:", error.message);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
 
-// 📦 GET PRODUCTS (PAGINATION)
+// 📦 GET PRODUCTS
 const getProducts = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
 
     const skip = (page - 1) * limit;
 
@@ -88,8 +83,7 @@ const getProducts = async (req, res) => {
     });
 
   } catch (error) {
-    console.log("GET ERROR:", error.message);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
@@ -100,15 +94,13 @@ const getProductById = async (req, res) => {
     const product = await Product.findById(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        message: "Product not found",
-      });
+      return res.status(404).json({ message: "Product not found" });
     }
 
     res.json(product);
 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch {
+    res.status(500).json({ message: "Invalid ID" });
   }
 };
 
@@ -117,27 +109,22 @@ const getProductById = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
 
-    // ✅ SKU CHECK
+    // SKU CHECK
     if (req.body.sku) {
       const exist = await Product.findOne({ sku: req.body.sku });
-
       if (exist && exist._id.toString() !== req.params.id) {
-        return res.status(400).json({
-          message: "SKU already exists",
-        });
+        return res.status(400).json({ message: "SKU already exists" });
       }
     }
 
-    // ✅ BARCODE CHECK (🔥 NEW)
+    // BARCODE CHECK
     if (req.body.barcode) {
       const existBarcode = await Product.findOne({
         barcode: req.body.barcode,
       });
 
       if (existBarcode && existBarcode._id.toString() !== req.params.id) {
-        return res.status(400).json({
-          message: "Barcode already exists",
-        });
+        return res.status(400).json({ message: "Barcode already exists" });
       }
     }
 
@@ -148,16 +135,13 @@ const updateProduct = async (req, res) => {
     );
 
     if (!product) {
-      return res.status(404).json({
-        message: "Product not found",
-      });
+      return res.status(404).json({ message: "Product not found" });
     }
 
     res.json(product);
 
   } catch (error) {
-    console.log("UPDATE ERROR:", error.message);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Update failed" });
   }
 };
 
@@ -168,16 +152,13 @@ const deleteProduct = async (req, res) => {
     const product = await Product.findByIdAndDelete(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        message: "Product not found",
-      });
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json({ message: "Product deleted successfully" });
+    res.json({ message: "Product deleted" });
 
-  } catch (error) {
-    console.log("DELETE ERROR:", error.message);
-    res.status(500).json({ message: error.message });
+  } catch {
+    res.status(500).json({ message: "Delete failed" });
   }
 };
 
@@ -192,37 +173,36 @@ const searchProducts = async (req, res) => {
     };
 
     const products = await Product.find(query)
-      .limit(limit * 1)
+      .limit(Number(limit))
       .skip((page - 1) * limit);
 
     const count = await Product.countDocuments(query);
 
     res.json({
       totalProducts: count,
-      currentPage: page,
+      currentPage: Number(page),
       totalPages: Math.ceil(count / limit),
       products,
     });
 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch {
+    res.status(500).json({ message: "Search failed" });
   }
 };
 
 
-// 📦 BARCODE SEARCH (🔥 IMPROVED)
+// 🔥 BARCODE API (MOST IMPORTANT)
 const getProductByBarcode = async (req, res) => {
   try {
+    const barcode = req.params.barcode?.trim();
 
-    if (!req.params.barcode) {
+    if (!barcode) {
       return res.status(400).json({
         message: "Barcode is required",
       });
     }
 
-    const product = await Product.findOne({
-      barcode: req.params.barcode,
-    });
+    const product = await Product.findOne({ barcode });
 
     if (!product) {
       return res.status(404).json({
@@ -232,8 +212,8 @@ const getProductByBarcode = async (req, res) => {
 
     res.json(product);
 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch {
+    res.status(500).json({ message: "Barcode fetch failed" });
   }
 };
 
@@ -247,8 +227,8 @@ const getLowStockProducts = async (req, res) => {
 
     res.json(products);
 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch {
+    res.status(500).json({ message: "Error fetching low stock" });
   }
 };
 
@@ -257,6 +237,10 @@ const getLowStockProducts = async (req, res) => {
 const getSalesByDate = async (req, res) => {
   try {
     const { date } = req.query;
+
+    if (!date) {
+      return res.status(400).json({ message: "Date required" });
+    }
 
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);
@@ -269,7 +253,7 @@ const getSalesByDate = async (req, res) => {
     });
 
     const totalRevenue = orders.reduce(
-      (sum, order) => sum + order.totalAmount,
+      (sum, o) => sum + o.totalAmount,
       0
     );
 
@@ -279,8 +263,8 @@ const getSalesByDate = async (req, res) => {
       totalRevenue,
     });
 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch {
+    res.status(500).json({ message: "Report error" });
   }
 };
 

@@ -33,12 +33,12 @@ const Orders = () => {
       <div className="p-6 bg-gray-900 min-h-screen text-white">
 
         <h1 className="text-3xl font-bold mb-6 text-blue-400">
-          📦 Order History
+           Order History
         </h1>
 
         {/* SEARCH */}
         <input
-          placeholder="🔍 Search Order ID..."
+          placeholder="Search Order ID..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full mb-4 p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none"
