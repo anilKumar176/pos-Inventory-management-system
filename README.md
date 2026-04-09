@@ -1,5 +1,5 @@
 # Omnichannel-Retail-POS-Inventory-Management-System
-# Omnichannel-Retail-POS-Inventory-Management-System
+
 # 🧾 RetailSync POS System
 
 A full-stack **Point of Sale (POS) System** built using the **MERN Stack (MongoDB, Express, React, Node.js)**.
