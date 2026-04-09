@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://pos-inventory-management-system.onrender.com/api",
+  baseURL: "https://pos-inventory-management-system-1.onrender.com/api",
+  timeout: 10000, //  important for render delay
 });
 
 API.interceptors.request.use((req) => {
@@ -15,4 +16,3 @@ API.interceptors.request.use((req) => {
 });
 
 export default API;
-//update api
