@@ -21,7 +21,7 @@ const Register = () => {
     try {
       await API.post("/auth/register", {
         ...form,
-        role: "cashier",
+        role: "admin",
       });
 
       alert("User Registered Successfully");
