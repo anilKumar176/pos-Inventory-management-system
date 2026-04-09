@@ -53,7 +53,6 @@ const Products = () => {
 
   const addProduct = async (e) => {
     e.preventDefault();
-
     try {
       const token = localStorage.getItem("token");
 
@@ -69,7 +68,7 @@ const Products = () => {
         }
       );
 
-      toast.success("Product Added ");
+      toast.success("Product Added ✅");
       resetForm();
       fetchProducts();
     } catch {
@@ -79,7 +78,7 @@ const Products = () => {
 
   const updateProduct = async () => {
     if (!form._id) {
-      toast.warning("Select product first ");
+      toast.warning("Select product first ⚠️");
       return;
     }
 
@@ -98,11 +97,11 @@ const Products = () => {
         }
       );
 
-      toast.success("Updated ");
+      toast.success("Product Updated ✅");
       resetForm();
       fetchProducts();
     } catch {
-      toast.error("Update failed ");
+      toast.error("Update failed ❌");
     }
   };
 
@@ -114,10 +113,10 @@ const Products = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      toast.success("Deleted ");
+      toast.success("Deleted ✅");
       fetchProducts();
     } catch {
-      toast.error("Delete failed ");
+      toast.error("Delete failed ❌");
     }
   };
 
@@ -141,21 +140,21 @@ const Products = () => {
       <div className="p-6 min-h-screen bg-gradient-to-br from-[#0f172a] via-[#020617] to-[#020617] text-white">
 
         <h1 className="text-3xl font-bold mb-6 text-indigo-400">
-           Product Management
+          Product Management
         </h1>
 
-        
+        {/* SEARCH */}
         <input
           placeholder="Search product..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full mb-4 p-3 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
+          className="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none"
         />
 
         {/* CATEGORY FILTER */}
         <select
           onChange={(e) => setCategory(e.target.value)}
-          className="mb-4 p-2 rounded bg-gray-800 border border-gray-700 text-white"
+          className="mb-4 p-3 rounded bg-gray-800 text-white border border-gray-700"
         >
           <option value="">All Categories</option>
           {categories.map((cat, i) => (
@@ -168,31 +167,80 @@ const Products = () => {
           onSubmit={addProduct}
           className="bg-[#1e293b] border border-slate-700 p-6 rounded-xl mb-6 grid grid-cols-2 gap-4 shadow-lg"
         >
-          <input name="name" placeholder="Name" value={form.name} onChange={handleChange} className="input" />
-          <input name="sku" placeholder="SKU" value={form.sku} onChange={handleChange} className="input" />
+          {/* COMMON INPUT STYLE */}
+          {[
+            { name: "name", placeholder: "Name" },
+            { name: "sku", placeholder: "SKU" },
+          ].map((field) => (
+            <input
+              key={field.name}
+              name={field.name}
+              placeholder={field.placeholder}
+              value={form[field.name]}
+              onChange={handleChange}
+              className="p-2 rounded bg-gray-800 text-white border border-gray-600 outline-none"
+            />
+          ))}
 
-          {/*  FIXED CATEGORY */}
+          {/* CATEGORY */}
           <select
             name="category"
             value={form.category}
             onChange={handleChange}
-            className="input bg-white text-black"
+            className="p-2 rounded bg-gray-800 text-white border border-gray-600"
           >
-            <option value="" className="text-black">Select Category</option>
+            <option value="">Select Category</option>
             {categories.map((cat, i) => (
-              <option key={i} className="text-black">{cat}</option>
+              <option key={i}>{cat}</option>
             ))}
           </select>
 
-          <input name="price" type="number" placeholder="Price" value={form.price} onChange={handleChange} className="input" />
-          <input name="stock" type="number" placeholder="Stock" value={form.stock} onChange={handleChange} className="input" />
-          <input name="barcode" placeholder="Barcode" value={form.barcode} onChange={handleChange} className="input" />
+          {/* PRICE & STOCK */}
+          <input
+            name="price"
+            type="number"
+            placeholder="Price"
+            value={form.price}
+            onChange={handleChange}
+            className="p-2 rounded bg-gray-800 text-white border border-gray-600"
+          />
 
-          <input name="description" placeholder="Description" value={form.description} onChange={handleChange} className="input col-span-2" />
-          <input name="image" placeholder="Image URL" value={form.image} onChange={handleChange} className="input col-span-2" />
+          <input
+            name="stock"
+            type="number"
+            placeholder="Stock"
+            value={form.stock}
+            onChange={handleChange}
+            className="p-2 rounded bg-gray-800 text-white border border-gray-600"
+          />
 
+          <input
+            name="barcode"
+            placeholder="Barcode"
+            value={form.barcode}
+            onChange={handleChange}
+            className="p-2 rounded bg-gray-800 text-white border border-gray-600"
+          />
+
+          <input
+            name="description"
+            placeholder="Description"
+            value={form.description}
+            onChange={handleChange}
+            className="p-2 rounded bg-gray-800 text-white border border-gray-600 col-span-2"
+          />
+
+          <input
+            name="image"
+            placeholder="Image URL"
+            value={form.image}
+            onChange={handleChange}
+            className="p-2 rounded bg-gray-800 text-white border border-gray-600 col-span-2"
+          />
+
+          {/* BUTTONS */}
           <button className="bg-indigo-600 hover:bg-indigo-700 py-2 rounded col-span-2 font-semibold">
-             Add Product
+            Add Product
           </button>
 
           <button
@@ -206,14 +254,13 @@ const Products = () => {
 
         {/* PRODUCTS */}
         <div className="grid md:grid-cols-3 gap-4">
-
           {filteredProducts.length === 0 ? (
             <p className="text-gray-400 text-center col-span-3">
               No products found
             </p>
           ) : (
             filteredProducts.map((p) => (
-              <div key={p._id} className="bg-[#1e293b] p-4 rounded-xl shadow hover:scale-105 transition border border-slate-700">
+              <div key={p._id} className="bg-[#1e293b] p-4 rounded-xl shadow border border-slate-700 hover:scale-105 transition">
 
                 <img
                   src={p.image || "https://via.placeholder.com/150"}
@@ -243,7 +290,6 @@ const Products = () => {
               </div>
             ))
           )}
-
         </div>
 
       </div>
