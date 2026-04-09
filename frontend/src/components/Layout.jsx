@@ -38,51 +38,66 @@ const Layout = ({ children }) => {
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
 
       {/* MOBILE TOP BAR */}
-      <div className="md:hidden flex justify-between items-center bg-gray-900 p-4 border-b border-gray-700">
+      <div className="md:hidden fixed top-0 left-0 w-full flex justify-between items-center bg-gray-900 p-4 border-b border-gray-700 z-40">
         <h1 className="font-bold text-indigo-400 text-lg">Retail POS</h1>
 
-        <button onClick={() => setOpen(!open)} className="text-xl text-white">
-          {open ? <FaTimes /> : <FaBars />}
+        <button onClick={() => setOpen(true)} className="text-xl">
+          <FaBars />
         </button>
       </div>
 
-      {/* MOBILE SIDEBAR */}
+      {/* MOBILE SIDEBAR + OVERLAY */}
       {open && (
-        <div className="fixed top-0 left-0 w-64 h-full bg-gray-900 border-r border-gray-700 p-6 z-50 md:hidden">
+        <>
+          {/* OVERLAY */}
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setOpen(false)}
+          />
 
-          <h1 className="text-xl font-bold mb-6 text-indigo-400">
-            Retail POS
-          </h1>
+          {/* SIDEBAR */}
+          <div className="fixed top-0 left-0 w-64 h-full bg-gray-900 border-r border-gray-700 p-6 z-50 overflow-y-auto">
 
-          <nav className="space-y-3">
-            {menu.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 p-3 rounded-xl transition ${
-                  location.pathname === item.path
-                    ? "bg-indigo-600 text-white"
-                    : "hover:bg-gray-800 text-gray-300"
-                }`}
-              >
-                {item.icon}
-                {item.name}
-              </Link>
-            ))}
-          </nav>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-xl font-bold text-indigo-400">
+                Retail POS
+              </h1>
 
-          {/* LOGOUT */}
-          <button
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = "/";
-            }}
-            className="mt-6 w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg"
-          >
-            <FaSignOutAlt /> Logout
-          </button>
-        </div>
+              <button onClick={() => setOpen(false)}>
+                <FaTimes />
+              </button>
+            </div>
+
+            <nav className="space-y-2">
+              {menu.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setOpen(false)}
+                  className={`flex items-center gap-3 p-3 rounded-xl transition ${
+                    location.pathname === item.path
+                      ? "bg-indigo-600"
+                      : "hover:bg-gray-800 text-gray-300"
+                  }`}
+                >
+                  {item.icon}
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
+
+            {/* LOGOUT */}
+            <button
+              onClick={() => {
+                localStorage.clear();
+                window.location.href = "/";
+              }}
+              className="mt-6 w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 py-2 rounded-lg"
+            >
+              <FaSignOutAlt /> Logout
+            </button>
+          </div>
+        </>
       )}
 
       {/* DESKTOP SIDEBAR */}
@@ -106,7 +121,7 @@ const Layout = ({ children }) => {
               to={item.path}
               className={`flex items-center gap-3 p-3 rounded-xl transition ${
                 location.pathname === item.path
-                  ? "bg-indigo-600 text-white shadow-md"
+                  ? "bg-indigo-600 shadow-md"
                   : "hover:bg-gray-800 text-gray-300"
               }`}
             >
@@ -122,14 +137,14 @@ const Layout = ({ children }) => {
             localStorage.clear();
             window.location.href = "/";
           }}
-          className="mt-6 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl"
+          className="mt-6 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 py-2 rounded-xl"
         >
           <FaSignOutAlt /> Logout
         </button>
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 p-4 md:p-8 bg-gray-950">
+      <div className="flex-1 pt-16 md:pt-0 p-3 md:p-8 bg-gray-950 overflow-y-auto">
         {children}
       </div>
 
