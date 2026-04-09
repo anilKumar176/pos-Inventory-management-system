@@ -124,7 +124,7 @@ const POS = () => {
           customerName,
         },
       });
-
+//update file name
       setCart([]);
       setCustomerName("");
       setCustomerPhone("");
